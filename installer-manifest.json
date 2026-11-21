@@ -1,0 +1,12 @@
+{
+  "sha256": {
+    "Install.cmd": "5a7748178aaf1b106af425cb9790e1ecdabb51187b7704d3f0dffd68e1bbf588",
+    "build_overlay.py": "c4e006ed8ab66b231966b9c4cda93ad4ecffe27735339c3d04a69b75bc364cce",
+    "install.py": "8804ed4b8bdd5e568e402a94a4deae2d19b67f1383756c86a6f13a53da015b52",
+    "src/classfile.py": "9961015f2a99f37067fb421f8153f6a87c1fde719ce197c6037b2eea292a9841",
+    "src/ethernet.py": "b6af2cd55aaaf61c65b01a88f7e6d90b6b9d6fafc822cf645d4fc1abf58a11fb",
+    "src/firmware.py": "ba932a2ac3a9823df5f0e347c79833c7f47de7f213736d6a2ad68c5942053d3d",
+    "src/golf/thinkbluefix/FirmwareDefaults.java": "9abe2ecc92b91156f966b3ddff7e1219f481b1d84ede1e88f6f37ce5ea617622",
+    "src/references.py": "cdd98358484c969571d94348fc7e6e19e70926428ba7db134227c9dd15215a0a"
+  }
+}

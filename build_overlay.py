@@ -9,14 +9,22 @@ import subprocess
 import tempfile
 import zipfile
 
-from src.firmware import STOCK_CLASS_ENTRY, patch_firmware
+from src.firmware import STOCK_CLASS_ENTRY, STOCK_CLASS_SHA256, patch_firmware
 
 
 SOURCE = Path(__file__).resolve().parent / 'src/golf/thinkbluefix/FirmwareDefaults.java'
 REFERENCES = {
     'compiler': '9cddda75f4a1b4469e73f44e7b61a3e897d0f657df4797f9106ffe88c4eeade0',
     'bootclasses': '02c425a49ff3e2b96751d2cd56462a01599ae0ec587c38f67ff13d4a4484ca8c',
-    'hmi_api': 'fc96bb92ffe1d9212daa7c9b6fee05007434cf15525cd9ad7897dfe97ad4c956',
+}
+CONFIG_API = 'de/vw/mib/asl/framework/api/diagnosis/config/'
+COMPILE_CLASSES = (CONFIG_API + 'Access.class', CONFIG_API + 'EcoHmi.class')
+REFERENCE_CLASSES = {
+    STOCK_CLASS_ENTRY: STOCK_CLASS_SHA256,
+    COMPILE_CLASSES[0]: 'cf68d38bcf1266203277d6c0d2d2ecf9a285d343a8c6d65ad31656826df47fba',
+    COMPILE_CLASSES[1]: 'e8b47c932c32dab8955278bd60718147e71b9ee9e8b4975c86158e82e99551b1',
+    'de/vw/mib/asl/framework/internal/diagnosis/variant/std2/EcoHmiImpl.class':
+        '03eb1d36df8c017db0697221b2255b36ae944b8e4edf8e65de17502999d468fb',
 }
 PROFILES = {
     'combustion-manual': ((1, 1),),
@@ -45,23 +53,52 @@ def profile_source(profile):
     )
 
 
+def verify_file(path, expected):
+    with path.open('rb') as source:
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            digest.update(chunk)
+    if digest.hexdigest() != expected:
+        raise ValueError(f'{path.name} SHA-256 is unfamiliar')
+
+
+def read_verified_hmi(path):
+    classes = {}
+    with zipfile.ZipFile(path) as firmware:
+        names = firmware.namelist()
+        for name, expected in REFERENCE_CLASSES.items():
+            if names.count(name) != 1 or firmware.getinfo(name).file_size > 1024 * 1024:
+                raise ValueError(f'{path.name} lacks one unambiguous, reviewed copy of {name}')
+            data = firmware.read(name)
+            if hashlib.sha256(data).hexdigest() != expected:
+                raise ValueError(f'{path.name} has an unrecognized version of {name}')
+            classes[name] = data
+    return classes
+
+
+def verify_references(compiler, bootclasses, hmi_api):
+    verify_file(compiler, REFERENCES['compiler'])
+    verify_file(bootclasses, REFERENCES['bootclasses'])
+    return read_verified_hmi(hmi_api)
+
+
 def build(java, compiler, bootclasses, hmi_api, profile):
     profile_code = profile_source(profile)
-    for key, path in (('compiler', compiler), ('bootclasses', bootclasses), ('hmi_api', hmi_api)):
-        if hashlib.sha256(path.read_bytes()).hexdigest() != REFERENCES[key]:
-            raise ValueError(f'{path.name} SHA-256 is unfamiliar')
-    with zipfile.ZipFile(hmi_api) as firmware:
-        patched = patch_firmware(firmware.read(STOCK_CLASS_ENTRY))
-
+    firmware = verify_references(compiler, bootclasses, hmi_api)
+    patched = patch_firmware(firmware[STOCK_CLASS_ENTRY])
     with tempfile.TemporaryDirectory(prefix='bluetrainer-') as temporary:
         root = Path(temporary)
+        compile_api = root / 'verified-api.jar'
+        with zipfile.ZipFile(compile_api, 'w') as archive:
+            for name in COMPILE_CLASSES:
+                archive.writestr(name, firmware[name])
         selected_profile = root / 'SelectedProfile.java'
         selected_profile.write_text(profile_code, encoding='ascii')
         classes = root / 'classes'
         classes.mkdir()
         subprocess.run([
             java, '-jar', str(compiler.resolve()), '-source', '1.4', '-target', '1.4',
-            '-bootclasspath', str(bootclasses.resolve()), '-classpath', str(hmi_api.resolve()),
+            '-bootclasspath', str(bootclasses.resolve()), '-classpath', str(compile_api),
             '-d', str(classes), str(SOURCE), str(selected_profile),
         ], check=True, timeout=90)
         entries = {path.relative_to(classes).as_posix(): path.read_bytes()

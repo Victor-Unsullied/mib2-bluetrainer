@@ -19,7 +19,7 @@ body:
     id: version
     attributes:
       label: Project version
-      placeholder: v0.2.0 or future release
+      placeholder: v0.1.0 or future release
     validations:
       required: true
   - type: input
