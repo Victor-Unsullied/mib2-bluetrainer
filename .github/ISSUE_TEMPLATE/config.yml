@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Bluetrainer documentation
+    url: https://github.com/Victor-Unsullied/mib2-bluetrainer#readme
+    about: See supported inputs, offline build steps and validation status.

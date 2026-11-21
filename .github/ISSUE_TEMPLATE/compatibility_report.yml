@@ -1,0 +1,45 @@
+name: Compatibility / support request
+description: Ask about a vehicle or firmware version, or share an existing test result.
+title: "[Compatibility] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. You can ask about support without attempting an installation. Keep registration, VIN, private backups, factory files and credentials private.
+  - type: dropdown
+    id: request_type
+    attributes:
+      label: Type of submission
+      options:
+        - Support request
+        - Existing test result
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Project version
+      placeholder: v0.2.0 or future release
+    validations:
+      required: true
+  - type: input
+    id: vehicle
+    attributes:
+      label: Engine code, model year and transmission
+      placeholder: Engine code / model year / gearbox
+    validations:
+      required: true
+  - type: input
+    id: head_unit
+    attributes:
+      label: Head unit, Train and MU
+      placeholder: Delphi 874B / MST2_EU_VW_P0635D / 0757
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Requested support or test summary
+      description: List the features involved, such as boot, menu, live score, history or shift hints. Include the selected profile if relevant.
+    validations:
+      required: true

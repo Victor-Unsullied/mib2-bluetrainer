@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a problem with the Bluetrainer offline tools or documentation.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Share relevant, reviewed error text. Keep backups, firmware, private paths, credentials, VIN and personal data private.
+  - type: input
+    id: version
+    attributes:
+      label: Project version
+      placeholder: v0.2.0
+    validations:
+      required: true
+  - type: input
+    id: head_unit
+    attributes:
+      label: Head unit, Train and MU
+      placeholder: Delphi 874B / MST2_EU_VW_P0635D / 0757
+  - type: textarea
+    id: environment
+    attributes:
+      label: Build environment
+      description: Include the operating system, Python version, Java version and selected profile.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened and what did you expect?
+      description: Describe the offline command and the error or observed result. Remove private paths and identifiers.
+    validations:
+      required: true
